@@ -3,7 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config'; 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { NetworkService } from './network/network.service';
+import { NetworkService } from './network/services/network.service';
+import { LeaseWatcherService } from './network/services/lease-watcher.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { NetworkService } from './network/network.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, NetworkService],
+  providers: [AppService, NetworkService, LeaseWatcherService],
 })
 export class AppModule {}
