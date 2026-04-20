@@ -5,7 +5,7 @@ import * as fs from 'fs';
 @Injectable()
 export class LeaseWatcherService implements OnModuleInit {
   private readonly leasePath = '/var/lib/dhcp/dhcpd.leases';
-  
+
   onModuleInit() {
     console.log('Vigilando conecxiones a NanoStation2...');
     chokidar.watch(this.leasePath).on('change', () => {

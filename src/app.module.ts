@@ -1,14 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config'; 
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NetworkService } from './network/services/network.service';
 import { LeaseWatcherService } from './network/services/lease-watcher.service';
+import { AccessControlModule } from './access_control/access-control.module';
+import { AuditModule } from './audit/audit.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    AuthModule,
+    AccessControlModule,
+    AuditModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
