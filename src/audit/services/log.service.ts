@@ -59,18 +59,23 @@ export class LogService {
 
   async create(dto: CreateLogDto): Promise<Log> {
     try {
-      const user = await this.userRepository.findOne({
-        where: { idUser: dto.idUser, deletedAt: IsNull() },
-      });
-      if (!user) {
-        throw new NotFoundException(`No existe el usuario con ID ${dto.idUser}`);
+      let user: User | null = null;
+
+      if (dto.idUser > 0) {
+        user = await this.userRepository.findOne({
+          where: { idUser: dto.idUser, deletedAt: IsNull() },
+        });
+        if (!user) {
+          throw new NotFoundException(`No existe el usuario con ID ${dto.idUser}`);
+        }
       }
+
       const log = this.logRepository.create({
-        user,
-        ipAddress: dto.ipAddress,
+        ...(user ? { user } : {}),
+        ip: dto.ip,
         action: dto.action,
-        module: dto.module,
-        description: dto.description ?? null,
+        url: dto.url,
+        method: dto.method,
         userAgent: dto.userAgent ?? null,
       });
       return await this.logRepository.save(log);

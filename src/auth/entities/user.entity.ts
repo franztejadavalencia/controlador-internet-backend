@@ -33,7 +33,7 @@ export class User extends BaseEntity {
   @Column({ name: 'is_two_factor_enabled', type: 'boolean', default: false })
   isTwoFactorEnabled: boolean;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, default: 'ACTIVO' })
   status: string;
 
   @OneToOne(() => Person, (person) => person.user)

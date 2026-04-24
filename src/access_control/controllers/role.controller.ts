@@ -10,6 +10,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggerAction } from '@/common/decorators/logger-action.decorator';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import { RoleService } from '../services/role.service';
@@ -39,8 +41,12 @@ export class RoleController {
 
   @Post()
   @ApiOperation({ summary: 'Crear un rol' })
-  create(@Body() payload: CreateRoleDto) {
-    return this.roleService.create(payload);
+  create(
+    @Body() payload: CreateRoleDto,
+    @LoggerAction({ action: 'CREATE_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.roleService.create(payload, loggerAction);
   }
 
   @Put(':id')
@@ -48,19 +54,29 @@ export class RoleController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() payload: UpdateRoleDto,
+    @LoggerAction({ action: 'UPDATE_ROLE' })
+    loggerAction: LoggerActionInterface,
   ) {
-    return this.roleService.update(id, payload);
+    return this.roleService.update(id, payload, loggerAction);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un rol' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.roleService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'DELETE_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.roleService.delete(id, loggerAction);
   }
 
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaurar un rol' })
-  restore(@Param('id', ParseIntPipe) id: number) {
-    return this.roleService.restore(id);
+  restore(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'RESTORE_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.roleService.restore(id, loggerAction);
   }
 }

@@ -10,6 +10,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggerAction } from '@/common/decorators/logger-action.decorator';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { CreatePermissionDto } from '../dto/create-permission.dto';
 import { UpdatePermissionDto } from '../dto/update-permission.dto';
 import { PermissionService } from '../services/permission.service';
@@ -39,8 +41,12 @@ export class PermissionController {
 
   @Post()
   @ApiOperation({ summary: 'Crear un permiso' })
-  create(@Body() payload: CreatePermissionDto) {
-    return this.permissionService.create(payload);
+  create(
+    @Body() payload: CreatePermissionDto,
+    @LoggerAction({ action: 'CREATE_PERMISSION' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.permissionService.create(payload, loggerAction);
   }
 
   @Put(':id')
@@ -48,19 +54,29 @@ export class PermissionController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() payload: UpdatePermissionDto,
+    @LoggerAction({ action: 'UPDATE_PERMISSION' })
+    loggerAction: LoggerActionInterface,
   ) {
-    return this.permissionService.update(id, payload);
+    return this.permissionService.update(id, payload, loggerAction);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un permiso' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.permissionService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'DELETE_PERMISSION' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.permissionService.delete(id, loggerAction);
   }
 
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaurar un permiso' })
-  restore(@Param('id', ParseIntPipe) id: number) {
-    return this.permissionService.restore(id);
+  restore(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'RESTORE_PERMISSION' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.permissionService.restore(id, loggerAction);
   }
 }

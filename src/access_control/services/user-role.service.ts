@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import { CreateUserRoleDto } from '../dto/create-user-role.dto';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
 import { Role } from '../entities/role.entity';
 import { UserRole } from '../entities/user-role.entity';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
+import { LogService } from '@/audit/services/log.service';
 
 @Injectable()
 export class UserRoleService {
@@ -22,6 +25,7 @@ export class UserRoleService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly logService: LogService,
   ) {}
 
   async findAll(): Promise<UserRole[]> {
@@ -67,7 +71,7 @@ export class UserRoleService {
     }
   }
 
-  async create(dto: CreateUserRoleDto): Promise<UserRole> {
+  async create(dto: CreateUserRoleDto, loggerAction: LoggerActionInterface): Promise<UserRole> {
     try {
       const user = await this.userRepository.findOne({
         where: { idUser: dto.idUser, deletedAt: IsNull() },
@@ -84,6 +88,7 @@ export class UserRoleService {
       const assignment = this.userRoleRepository.create({ user, role });
       return await this.userRoleRepository.save(assignment);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -91,10 +96,19 @@ export class UserRoleService {
         throw new ConflictException('Este usuario ya tiene asignado ese rol (registro activo).');
       }
       throw new BadRequestException(`Error al asignar el rol. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async update(id: number, changes: UpdateUserRoleDto): Promise<UserRole> {
+  async update(
+    id: number,
+    changes: UpdateUserRoleDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<UserRole> {
     try {
       const result = await this.findOne(id);
       if (changes.idUser !== undefined || changes.idRole !== undefined) {
@@ -117,6 +131,7 @@ export class UserRoleService {
       }
       return await this.userRoleRepository.save(result);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -124,27 +139,51 @@ export class UserRoleService {
         throw new ConflictException('Este usuario ya tiene asignado ese rol (registro activo).');
       }
       throw new BadRequestException(`Error al actualizar la asignación. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
       await this.userRoleRepository.softDelete({ idUserRole: id });
       return true;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(`Error al eliminar la asignación. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async restore(id: number) {
-    const result = await this.userRoleRepository.restore({ idUserRole: id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`No se encontró una asignación eliminada con ID ${id}`);
+  async restore(id: number, loggerAction: LoggerActionInterface) {
+    try {
+      const result = await this.userRoleRepository.restore({ idUserRole: id });
+      if (result.affected === 0) {
+        throw new NotFoundException(`No se encontró una asignación eliminada con ID ${id}`);
+      }
+      return { message: 'Registro restaurado exitosamente' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al restaurar la asignación. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
-    return { message: 'Registro restaurado exitosamente' };
   }
 }

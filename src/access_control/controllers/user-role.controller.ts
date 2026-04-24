@@ -10,6 +10,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggerAction } from '@/common/decorators/logger-action.decorator';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { CreateUserRoleDto } from '../dto/create-user-role.dto';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
 import { UserRoleService } from '../services/user-role.service';
@@ -39,25 +41,42 @@ export class UserRoleController {
 
   @Post()
   @ApiOperation({ summary: 'Asignar un rol a un usuario' })
-  create(@Body() payload: CreateUserRoleDto) {
-    return this.userRoleService.create(payload);
+  create(
+    @Body() payload: CreateUserRoleDto,
+    @LoggerAction({ action: 'CREATE_USER_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.userRoleService.create(payload, loggerAction);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar una asignación (usuario y/o rol)' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() payload: UpdateUserRoleDto) {
-    return this.userRoleService.update(id, payload);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() payload: UpdateUserRoleDto,
+    @LoggerAction({ action: 'UPDATE_USER_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.userRoleService.update(id, payload, loggerAction);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar una asignación (soft delete)' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.userRoleService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'DELETE_USER_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.userRoleService.delete(id, loggerAction);
   }
 
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaurar una asignación eliminada' })
-  restore(@Param('id', ParseIntPipe) id: number) {
-    return this.userRoleService.restore(id);
+  restore(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'RESTORE_USER_ROLE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.userRoleService.restore(id, loggerAction);
   }
 }
