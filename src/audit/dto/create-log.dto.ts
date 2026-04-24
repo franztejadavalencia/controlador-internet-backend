@@ -5,7 +5,7 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-v
 export class CreateLogDto {
   @ApiProperty({ example: 1 })
   @IsInt()
-  @Min(1)
+  @Min(0)
   idUser: number;
 
   @ApiProperty({ example: '192.168.0.1' })
@@ -13,7 +13,7 @@ export class CreateLogDto {
   @IsNotEmpty()
   @MaxLength(45)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  ipAddress: string;
+  ip: string;
 
   @ApiProperty({ example: 'CREATE' })
   @IsString()
@@ -27,13 +27,14 @@ export class CreateLogDto {
   @IsNotEmpty()
   @MaxLength(100)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  module: string;
+  url: string;
 
-  @ApiPropertyOptional({ example: 'Usuario creado correctamente' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'POST' })
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  description?: string;
+  method: string;
 
   @ApiPropertyOptional({ example: 'Mozilla/5.0 ...' })
   @IsOptional()

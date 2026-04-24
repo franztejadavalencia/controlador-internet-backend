@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import { UpdatePermissionDto } from '../dto/update-permission.dto';
 import { ModuleEntity } from '../entities/module.entity';
 import { Permission } from '../entities/permission.entity';
 import { Role } from '../entities/role.entity';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
+import { LogService } from '@/audit/services/log.service';
 
 @Injectable()
 export class PermissionService {
@@ -22,6 +25,7 @@ export class PermissionService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(ModuleEntity)
     private readonly moduleRepository: Repository<ModuleEntity>,
+    private readonly logService: LogService,
   ) {}
 
   async findAll(): Promise<Permission[]> {
@@ -65,7 +69,10 @@ export class PermissionService {
     }
   }
 
-  async create(dto: CreatePermissionDto): Promise<Permission> {
+  async create(
+    dto: CreatePermissionDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<Permission> {
     try {
       const role = await this.roleRepository.findOne({
         where: { idRole: dto.idRole, deletedAt: IsNull() },
@@ -90,6 +97,7 @@ export class PermissionService {
       });
       return await this.permissionRepository.save(permission);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -97,10 +105,19 @@ export class PermissionService {
         throw new ConflictException('Ya existe un permiso activo para este rol y módulo.');
       }
       throw new BadRequestException(`Error al crear el permiso. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async update(id: number, changes: UpdatePermissionDto): Promise<Permission> {
+  async update(
+    id: number,
+    changes: UpdatePermissionDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<Permission> {
     try {
       const result = await this.findOne(id);
       if (changes.idRole !== undefined || changes.idModule !== undefined) {
@@ -138,6 +155,7 @@ export class PermissionService {
       }
       return await this.permissionRepository.save(result);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -145,27 +163,51 @@ export class PermissionService {
         throw new ConflictException('Ya existe un permiso activo para este rol y módulo.');
       }
       throw new BadRequestException(`Error al actualizar el permiso. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
       await this.permissionRepository.softDelete({ idPermission: id });
       return true;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(`Error al eliminar el permiso. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async restore(id: number) {
-    const result = await this.permissionRepository.restore({ idPermission: id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`No se encontró un permiso eliminado con ID ${id}`);
+  async restore(id: number, loggerAction: LoggerActionInterface) {
+    try {
+      const result = await this.permissionRepository.restore({ idPermission: id });
+      if (result.affected === 0) {
+        throw new NotFoundException(`No se encontró un permiso eliminado con ID ${id}`);
+      }
+      return { message: 'Registro restaurado exitosamente' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al restaurar el permiso. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
-    return { message: 'Registro restaurado exitosamente' };
   }
 }

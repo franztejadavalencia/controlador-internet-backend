@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,12 +11,15 @@ import { getErrorMessage, getPgErrorCode } from '../../common/utils/error-messag
 import { CreatePersonDto } from '../dto/create-person.dto';
 import { UpdatePersonDto } from '../dto/update-person.dto';
 import { Person } from '../entities/person.entity';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
+import { LogService } from '@/audit/services/log.service';
 
 @Injectable()
 export class PersonService {
   constructor(
     @InjectRepository(Person)
     private readonly personRepository: Repository<Person>,
+    private readonly logService: LogService,
   ) {}
 
   async findAll(): Promise<Person[]> {
@@ -54,11 +58,13 @@ export class PersonService {
     }
   }
 
-  async create(dto: CreatePersonDto): Promise<Person> {
+  async create(dto: CreatePersonDto, loggerAction: LoggerActionInterface): Promise<Person> {
     try {
       const person = this.personRepository.create(dto);
-      return await this.personRepository.save(person);
+      const savedPerson = await this.personRepository.save(person);
+      return savedPerson;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (getPgErrorCode(error) === '23505') {
         const detail = String(
           typeof error === 'object' && error !== null && 'detail' in error
@@ -73,34 +79,64 @@ export class PersonService {
         }
       }
       throw new BadRequestException(`Error al crear la persona. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async update(id: number, changes: UpdatePersonDto): Promise<Person> {
+  async update(id: number, changes: UpdatePersonDto, loggerAction: LoggerActionInterface): Promise<Person> {
     try {
       const result = await this.findOne(id);
       this.personRepository.merge(result, changes);
       return await this.personRepository.save(result);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       throw new BadRequestException(`Error al actualizar la persona. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
       await this.personRepository.softDelete({ idPerson: id });
       return true;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       throw new BadRequestException(`Error al eliminar la persona. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async restore(id: number) {
-    const result = await this.personRepository.restore({ idPerson: id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`No se encontró una persona eliminada con ID ${id}`);
+  async restore(id: number, loggerAction: LoggerActionInterface) {
+    try {
+      const result = await this.personRepository.restore({ idPerson: id });
+      if (result.affected === 0) {
+        throw new NotFoundException(`No se encontró una persona eliminada con ID ${id}`);
+      }
+      return { message: 'Registro restaurado exitosamente' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al restaurar la persona. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
-    return { message: 'Registro restaurado exitosamente' };
   }
 }

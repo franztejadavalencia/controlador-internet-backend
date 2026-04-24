@@ -10,6 +10,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggerAction } from '@/common/decorators/logger-action.decorator';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { CreateModuleDto } from '../dto/create-module.dto';
 import { UpdateModuleDto } from '../dto/update-module.dto';
 import { ModuleService } from '../services/module.service';
@@ -39,8 +41,12 @@ export class AccessModuleController {
 
   @Post()
   @ApiOperation({ summary: 'Crear un módulo' })
-  create(@Body() payload: CreateModuleDto) {
-    return this.moduleService.create(payload);
+  create(
+    @Body() payload: CreateModuleDto,
+    @LoggerAction({ action: 'CREATE_MODULE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.moduleService.create(payload, loggerAction);
   }
 
   @Put(':id')
@@ -48,19 +54,29 @@ export class AccessModuleController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() payload: UpdateModuleDto,
+    @LoggerAction({ action: 'UPDATE_MODULE' })
+    loggerAction: LoggerActionInterface,
   ) {
-    return this.moduleService.update(id, payload);
+    return this.moduleService.update(id, payload, loggerAction);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un módulo' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.moduleService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'DELETE_MODULE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.moduleService.delete(id, loggerAction);
   }
 
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaurar un módulo' })
-  restore(@Param('id', ParseIntPipe) id: number) {
-    return this.moduleService.restore(id);
+  restore(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'RESTORE_MODULE' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.moduleService.restore(id, loggerAction);
   }
 }

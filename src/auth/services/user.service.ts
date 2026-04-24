@@ -1,16 +1,21 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, IsNull, Not, Repository } from 'typeorm';
 import { getErrorMessage, getPgErrorCode } from '../../common/utils/error-message';
+import { hashPassword, verifyPassword } from '../../common/utils/password-hasher';
+import { ChangePasswordUserDto } from '../dto/change-password-user.dto';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Person } from '../entities/person.entity';
 import { User } from '../entities/user.entity';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
+import { LogService } from '@/audit/services/log.service';
 
 @Injectable()
 export class UserService {
@@ -19,6 +24,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Person)
     private readonly personRepository: Repository<Person>,
+    private readonly logService: LogService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -62,7 +68,7 @@ export class UserService {
     }
   }
 
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto, loggerAction: LoggerActionInterface): Promise<User> {
     try {
       const person = await this.personRepository.findOne({
         where: { idPerson: dto.idPerson, deletedAt: IsNull() },
@@ -70,16 +76,16 @@ export class UserService {
       if (!person) {
         throw new NotFoundException(`No existe la persona con ID ${dto.idPerson}`);
       }
+      const defaultPasswordHash = await hashPassword(person.ci);
       const user = this.userRepository.create({
         username: dto.username,
-        passwordHash: dto.passwordHash,
-        twoFactorSecret: dto.twoFactorSecret ?? null,
-        isTwoFactorEnabled: dto.isTwoFactorEnabled,
-        status: dto.status,
+        passwordHash: defaultPasswordHash,
+        twoFactorSecret: null,
         person,
       });
       return await this.userRepository.save(user);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -94,15 +100,25 @@ export class UserService {
         }
       }
       throw new BadRequestException(`Error al crear el usuario. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async update(id: number, changes: UpdateUserDto): Promise<User> {
+  async update(
+    id: number,
+    changes: UpdateUserDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<User> {
     try {
       const result = await this.findOne(id);
       this.userRepository.merge(result, changes);
       return await this.userRepository.save(result);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -113,27 +129,82 @@ export class UserService {
         }
       }
       throw new BadRequestException(`Error al actualizar el usuario. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
       await this.userRepository.softDelete({ idUser: id });
       return true;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(`Error al eliminar el usuario. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async restore(id: number) {
-    const result = await this.userRepository.restore({ idUser: id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`No se encontró un usuario eliminado con ID ${id}`);
+  async restore(id: number, loggerAction: LoggerActionInterface) {
+    try {
+      const result = await this.userRepository.restore({ idUser: id });
+      if (result.affected === 0) {
+        throw new NotFoundException(`No se encontró un usuario eliminado con ID ${id}`);
+      }
+      return { message: 'Registro restaurado exitosamente' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al restaurar el usuario. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
-    return { message: 'Registro restaurado exitosamente' };
+  }
+
+  async changePassword(
+    id: number,
+    dto: ChangePasswordUserDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.findOne(id);
+      const isOldPasswordValid = await verifyPassword(dto.oldPassword, user.passwordHash);
+
+      if (!isOldPasswordValid) {
+        throw new BadRequestException('La contraseña actual es incorrecta.');
+      }
+
+      user.passwordHash = await hashPassword(dto.newPassword);
+      await this.userRepository.save(user);
+
+      return { message: 'Contraseña actualizada correctamente.' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al cambiar la contraseña. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
+    }
   }
 }

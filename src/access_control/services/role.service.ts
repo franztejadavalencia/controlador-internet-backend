@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,12 +11,15 @@ import { getErrorMessage, getPgErrorCode } from '../../common/utils/error-messag
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import { Role } from '../entities/role.entity';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
+import { LogService } from '@/audit/services/log.service';
 
 @Injectable()
 export class RoleService {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly logService: LogService,
   ) {}
 
   async findAll(): Promise<Role[]> {
@@ -56,24 +60,35 @@ export class RoleService {
     }
   }
 
-  async create(dto: CreateRoleDto): Promise<Role> {
+  async create(dto: CreateRoleDto, loggerAction: LoggerActionInterface): Promise<Role> {
     try {
       const role = this.roleRepository.create(dto);
       return await this.roleRepository.save(role);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (getPgErrorCode(error) === '23505') {
         throw new ConflictException(`El nombre "${dto.name}" ya está en uso.`);
       }
       throw new BadRequestException(`Error al crear el rol. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async update(id: number, changes: UpdateRoleDto): Promise<Role> {
+  async update(
+    id: number,
+    changes: UpdateRoleDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<Role> {
     try {
       const result = await this.findOne(id);
       this.roleRepository.merge(result, changes);
       return await this.roleRepository.save(result);
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -81,27 +96,51 @@ export class RoleService {
         throw new ConflictException(`El nombre "${changes.name}" ya está en uso.`);
       }
       throw new BadRequestException(`Error al actualizar el rol. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
       await this.roleRepository.softDelete({ idRole: id });
       return true;
     } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(`Error al eliminar el rol. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
   }
 
-  async restore(id: number) {
-    const result = await this.roleRepository.restore({ idRole: id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`No se encontró un rol eliminado con ID ${id}`);
+  async restore(id: number, loggerAction: LoggerActionInterface) {
+    try {
+      const result = await this.roleRepository.restore({ idRole: id });
+      if (result.affected === 0) {
+        throw new NotFoundException(`No se encontró un rol eliminado con ID ${id}`);
+      }
+      return { message: 'Registro restaurado exitosamente' };
+    } catch (error: unknown) {
+      loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al restaurar el rol. ${getErrorMessage(error)}`);
+    } finally {
+      await this.logService.create({
+        idUser: 0,
+        ...loggerAction,
+      });
     }
-    return { message: 'Registro restaurado exitosamente' };
   }
 }

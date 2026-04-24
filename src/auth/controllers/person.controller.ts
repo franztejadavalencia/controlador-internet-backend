@@ -10,6 +10,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { LoggerAction } from '@/common/decorators/logger-action.decorator';
+import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { PersonService } from '../services/person.service';
 import { CreatePersonDto } from '../dto/create-person.dto';
 import { UpdatePersonDto } from '../dto/update-person.dto';
@@ -39,25 +41,42 @@ export class PersonController {
 
   @Post()
   @ApiOperation({ summary: 'Crear una persona' })
-  create(@Body() payload: CreatePersonDto) {
-    return this.personService.create(payload);
+  create(
+    @Body() payload: CreatePersonDto,
+    @LoggerAction({ action: 'CREATE_PERSON' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.personService.create(payload, loggerAction);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar una persona' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() payload: UpdatePersonDto) {
-    return this.personService.update(id, payload);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() payload: UpdatePersonDto,
+    @LoggerAction({ action: 'UPDATE_PERSON' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.personService.update(id, payload, loggerAction);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar una persona' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.personService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'DELETE_PERSON' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return this.personService.delete(id, loggerAction);
   }
 
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaura una persona' })
-  async restore(@Param('id', ParseIntPipe) id: number) {
-    return await this.personService.restore(id);
+  async restore(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggerAction({ action: 'RESTORE_PERSON' })
+    loggerAction: LoggerActionInterface,
+  ) {
+    return await this.personService.restore(id, loggerAction);
   }
 }

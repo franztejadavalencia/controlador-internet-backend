@@ -11,17 +11,17 @@ export class Log extends BaseEntity {
   @JoinColumn({ name: 'id_user', referencedColumnName: 'idUser' })
   user: User;
 
-  @Column({ name: 'ip_address', type: 'varchar', length: 45 })
-  ipAddress: string;
+  @Column({ type: 'varchar', length: 45 })
+  ip: string;
 
   @Column({ type: 'varchar', length: 100 })
   action: string;
 
   @Column({ type: 'varchar', length: 100 })
-  module: string;
+  url: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
+  @Column({ type: 'varchar', length: 100 })
+  method: string;
 
   @Column({ name: 'user_agent', type: 'varchar', length: 512, nullable: true })
   userAgent: string | null;
