@@ -192,7 +192,7 @@ export class PermissionService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.permissionRepository.restore({ idPermission: id });
+      const result = await this.permissionRepository.restore({ deletedAt: Not(IsNull()), idPermission: id });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró un permiso eliminado con ID ${id}`);
       }

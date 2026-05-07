@@ -16,9 +16,9 @@ import { CreateModuleDto } from '../dto/create-module.dto';
 import { UpdateModuleDto } from '../dto/update-module.dto';
 import { ModuleService } from '../services/module.service';
 
-@ApiTags('AccessModule')
-@Controller('access-module')
-export class AccessModuleController {
+@ApiTags('Module')
+@Controller('module')
+export class ModuleController {
   constructor(private readonly moduleService: ModuleService) {}
 
   @Get()

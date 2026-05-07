@@ -80,6 +80,7 @@ export class UserService {
       const user = this.userRepository.create({
         username: dto.username,
         passwordHash: defaultPasswordHash,
+        isTwoFactorEnabled: dto.isTwoFactorEnabled,
         twoFactorSecret: null,
         person,
       });
@@ -158,7 +159,7 @@ export class UserService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.userRepository.restore({ idUser: id });
+      const result = await this.userRepository.restore({ deletedAt: Not(IsNull()), idUser: id });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró un usuario eliminado con ID ${id}`);
       }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../auth/entities/user.entity';
-import { AccessModuleController } from './controllers/access-module.controller';
+import { ModuleController } from './controllers/module.controller';
 import { PermissionController } from './controllers/permission.controller';
 import { RoleController } from './controllers/role.controller';
 import { UserRoleController } from './controllers/user-role.controller';
@@ -18,6 +18,6 @@ import { UserRoleService } from './services/user-role.service';
   imports: [TypeOrmModule.forFeature([Role, ModuleEntity, Permission, UserRole, User])],
   exports: [TypeOrmModule],
   providers: [RoleService, ModuleService, PermissionService, UserRoleService],
-  controllers: [RoleController, AccessModuleController, PermissionController, UserRoleController],
+  controllers: [RoleController, ModuleController, PermissionController, UserRoleController],
 })
 export class AccessControlModule {}

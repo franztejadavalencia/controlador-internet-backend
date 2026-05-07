@@ -125,7 +125,7 @@ export class RoleService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.roleRepository.restore({ idRole: id });
+      const result = await this.roleRepository.restore({ deletedAt: Not(IsNull()), idRole: id });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró un rol eliminado con ID ${id}`);
       }

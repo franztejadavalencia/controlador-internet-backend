@@ -114,7 +114,7 @@ export class LogService {
   }
 
   async restore(id: number) {
-    const result = await this.logRepository.restore({ idLog: id });
+    const result = await this.logRepository.restore({ deletedAt: Not(IsNull()), idLog: id });
     if (result.affected === 0) {
       throw new NotFoundException(`No se encontró un log eliminado con ID ${id}`);
     }

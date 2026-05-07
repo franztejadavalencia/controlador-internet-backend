@@ -121,7 +121,7 @@ export class PersonService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.personRepository.restore({ idPerson: id });
+      const result = await this.personRepository.restore({ deletedAt: Not(IsNull()), idPerson: id });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró una persona eliminada con ID ${id}`);
       }

@@ -9,4 +9,13 @@ export class ModuleEntity extends BaseEntity {
 
   @Column({ type: 'varchar', length: 100 })
   name: string;
+
+  @Column({ type: 'integer' })
+  group: number;
+
+  @Column({ type: 'varchar', length: 50 })
+  route: string;
+
+  @Column({ type: 'integer' })
+  order: number;
 }
