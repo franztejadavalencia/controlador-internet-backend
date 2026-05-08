@@ -20,7 +20,6 @@ export class LogService {
     try {
       return await this.logRepository.find({
         where: { deletedAt: IsNull() },
-        relations: { user: { person: true } },
         order: { idLog: 'DESC' },
       });
     } catch (error: unknown) {
@@ -32,7 +31,6 @@ export class LogService {
     try {
       return await this.logRepository.find({
         where: { deletedAt: Not(IsNull()) },
-        relations: { user: { person: true } },
         order: { idLog: 'DESC' },
         withDeleted: true,
       });
@@ -47,7 +45,6 @@ export class LogService {
     try {
       return await this.logRepository.findOneOrFail({
         where: { idLog: id, deletedAt: IsNull() },
-        relations: { user: { person: true } },
       });
     } catch (error: unknown) {
       if (error instanceof EntityNotFoundError) {
@@ -59,19 +56,7 @@ export class LogService {
 
   async create(dto: CreateLogDto): Promise<Log> {
     try {
-      let user: User | null = null;
-
-      if (dto.idUser > 0) {
-        user = await this.userRepository.findOne({
-          where: { idUser: dto.idUser, deletedAt: IsNull() },
-        });
-        if (!user) {
-          throw new NotFoundException(`No existe el usuario con ID ${dto.idUser}`);
-        }
-      }
-
       const log = this.logRepository.create({
-        ...(user ? { user } : {}),
         ip: dto.ip,
         action: dto.action,
         url: dto.url,

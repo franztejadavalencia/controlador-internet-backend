@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({ example: 'admin' })
@@ -16,4 +16,8 @@ export class CreateRoleDto {
   @MaxLength(500)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   description?: string;
+
+  @ApiProperty({ example: false })
+  @IsBoolean()
+  isInternal: boolean;
 }

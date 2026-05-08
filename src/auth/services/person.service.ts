@@ -81,7 +81,6 @@ export class PersonService {
       throw new BadRequestException(`Error al crear la persona. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -97,7 +96,6 @@ export class PersonService {
       throw new BadRequestException(`Error al actualizar la persona. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -113,7 +111,6 @@ export class PersonService {
       throw new BadRequestException(`Error al eliminar la persona. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -134,7 +131,6 @@ export class PersonService {
       throw new BadRequestException(`Error al restaurar la persona. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }

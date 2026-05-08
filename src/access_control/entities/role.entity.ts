@@ -12,4 +12,7 @@ export class Role extends BaseEntity {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   description: string | null;
+
+  @Column({ name: 'is_internal', type: 'boolean', default: false })
+  isInternal: boolean;
 }

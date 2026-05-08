@@ -1,13 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateLogDto {
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  @Min(0)
-  idUser: number;
-
   @ApiProperty({ example: '192.168.0.1' })
   @IsString()
   @IsNotEmpty()

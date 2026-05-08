@@ -98,7 +98,6 @@ export class UserRoleService {
       throw new BadRequestException(`Error al asignar el rol. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -141,7 +140,6 @@ export class UserRoleService {
       throw new BadRequestException(`Error al actualizar la asignación. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -160,7 +158,6 @@ export class UserRoleService {
       throw new BadRequestException(`Error al eliminar la asignación. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -181,7 +178,6 @@ export class UserRoleService {
       throw new BadRequestException(`Error al restaurar la asignación. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }

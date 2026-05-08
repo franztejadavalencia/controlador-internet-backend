@@ -103,7 +103,6 @@ export class UserService {
       throw new BadRequestException(`Error al crear el usuario. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -132,7 +131,6 @@ export class UserService {
       throw new BadRequestException(`Error al actualizar el usuario. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -151,7 +149,6 @@ export class UserService {
       throw new BadRequestException(`Error al eliminar el usuario. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -172,7 +169,6 @@ export class UserService {
       throw new BadRequestException(`Error al restaurar el usuario. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -203,7 +199,6 @@ export class UserService {
       throw new BadRequestException(`Error al cambiar la contraseña. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }

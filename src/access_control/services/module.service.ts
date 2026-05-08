@@ -72,7 +72,6 @@ export class ModuleService {
       throw new BadRequestException(`Error al crear el módulo. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -98,7 +97,6 @@ export class ModuleService {
       throw new BadRequestException(`Error al actualizar el módulo. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -117,7 +115,6 @@ export class ModuleService {
       throw new BadRequestException(`Error al eliminar el módulo. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -138,7 +135,6 @@ export class ModuleService {
       throw new BadRequestException(`Error al restaurar el módulo. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }

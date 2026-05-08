@@ -107,7 +107,6 @@ export class PermissionService {
       throw new BadRequestException(`Error al crear el permiso. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -165,7 +164,6 @@ export class PermissionService {
       throw new BadRequestException(`Error al actualizar el permiso. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -184,7 +182,6 @@ export class PermissionService {
       throw new BadRequestException(`Error al eliminar el permiso. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }
@@ -205,7 +202,6 @@ export class PermissionService {
       throw new BadRequestException(`Error al restaurar el permiso. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({
-        idUser: 0,
         ...loggerAction,
       });
     }

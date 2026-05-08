@@ -1,15 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
-import { User } from '../../auth/entities/user.entity';
 
 @Entity('logs')
 export class Log extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id_log' })
   idLog: number;
-
-  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'id_user', referencedColumnName: 'idUser' })
-  user: User;
 
   @Column({ type: 'varchar', length: 45 })
   ip: string;
