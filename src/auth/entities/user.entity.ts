@@ -36,6 +36,9 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 50, default: 'ACTIVO' })
   status: string;
 
+  @Column({ name: 'login_attempts', type: 'integer', default: 0 })
+  loginAttempts: number;
+
   @OneToOne(() => Person, (person) => person.user)
   @JoinColumn({ name: 'id_person', referencedColumnName: 'idPerson' })
   person: Person;

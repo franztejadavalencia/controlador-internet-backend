@@ -4,9 +4,7 @@ import { LoggerActionInterface } from '@/common/interfaces/logger-action.interfa
 
 type LoggerActionOptions = Partial<LoggerActionInterface>;
 
-const getHeaderValue = (
-  header: string | string[] | undefined,
-): string | undefined => {
+const getHeaderValue = (header: string | string[] | undefined): string | undefined => {
   if (!header) return undefined;
   return Array.isArray(header) ? header[0] : header;
 };
@@ -40,13 +38,11 @@ const getClientIp = (request: Request): string => {
 };
 
 export const LoggerAction: (options?: LoggerActionOptions) => ParameterDecorator =
-  createParamDecorator(
-    (options: LoggerActionOptions = {}, ctx: ExecutionContext) => {
-      const request = ctx.switchToHttp().getRequest<Request>();
-      const { url, method } = request;
-      const ip = getClientIp(request);
-      const userAgent = getHeaderValue(request.headers['user-agent']) ?? 'unknown';
+  createParamDecorator((options: LoggerActionOptions = {}, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<Request>();
+    const { url, method } = request;
+    const ip = getClientIp(request);
+    const userAgent = getHeaderValue(request.headers['user-agent']) ?? 'unknown';
 
-      return { url, method, ip, userAgent, ...options } as LoggerActionInterface;
-    },
-  );
+    return { url, method, ip, userAgent, ...options } as LoggerActionInterface;
+  });

@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoggerAction } from '@/common/decorators/logger-action.decorator';
@@ -16,12 +17,14 @@ import { ChangePasswordUserDto } from '../dto/change-password-user.dto';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserService } from '../services/user.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Listar usuarios' })
   getAll() {

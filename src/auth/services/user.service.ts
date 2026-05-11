@@ -68,6 +68,26 @@ export class UserService {
     }
   }
 
+  async findToLogin(username: string): Promise<User | undefined | null> {
+    return await this.userRepository.findOne({
+      where: {
+        username,
+        deletedAt: IsNull(),
+      },
+      relations: { person: true },
+      select: [
+        'idUser',
+        'username',
+        'passwordHash',
+        'isTwoFactorEnabled',
+        'status',
+        'twoFactorSecret',
+        'loginAttempts',
+        'person',
+      ],
+    });
+  }
+
   async create(dto: CreateUserDto, loggerAction: LoggerActionInterface): Promise<User> {
     try {
       const person = await this.personRepository.findOne({
@@ -202,5 +222,18 @@ export class UserService {
         ...loggerAction,
       });
     }
+  }
+
+  async handleFailedLogin(user: User, loggerAction: LoggerActionInterface): Promise<void> {
+    const loginAttempts = user.loginAttempts + 1;
+    const dto: UpdateUserDto = { loginAttempts };
+    if (loginAttempts >= 3) {
+      dto.status = BLOCKED;
+    }
+    await this.update(user.idUser, dto, loggerAction);
+  }
+
+  async resetLoginAttempts(idUser: number, loggerAction: LoggerActionInterface): Promise<void> {
+    await this.update(idUser, { loginAttempts: 0 }, loggerAction);
   }
 }

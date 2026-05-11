@@ -1,9 +1,10 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -41,4 +42,10 @@ export class CreateUserDto {
   @MaxLength(50)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   status: string;
+
+  @ApiProperty({ example: 0 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  loginAttempts: number;
 }
