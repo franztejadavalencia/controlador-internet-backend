@@ -135,6 +135,9 @@ export class UserService {
   ): Promise<User> {
     try {
       const result = await this.findOne(id);
+      if (changes.isTwoFactorEnabled === false) {
+        result.twoFactorSecret = null;
+      }
       this.userRepository.merge(result, changes);
       return await this.userRepository.save(result);
     } catch (error: unknown) {

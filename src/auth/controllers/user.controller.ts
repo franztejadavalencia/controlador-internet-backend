@@ -31,18 +31,21 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('trash')
   @ApiOperation({ summary: 'Listar usuarios eliminados' })
   getTrashed() {
     return this.userService.findAllTrashed();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un usuario' })
   getOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Crear un usuario' })
   create(
@@ -53,6 +56,7 @@ export class UserController {
     return this.userService.create(payload, loggerAction);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un usuario' })
   update(
@@ -64,6 +68,7 @@ export class UserController {
     return this.userService.update(id, payload, loggerAction);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un usuario' })
   delete(
@@ -74,6 +79,7 @@ export class UserController {
     return this.userService.delete(id, loggerAction);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/restore')
   @ApiOperation({ summary: 'Restaurar un usuario' })
   restore(
@@ -84,6 +90,7 @@ export class UserController {
     return this.userService.restore(id, loggerAction);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/change-password')
   @ApiOperation({ summary: 'Cambiar contraseña de un usuario' })
   changePassword(

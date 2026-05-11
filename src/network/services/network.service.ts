@@ -5,6 +5,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 export class NetworkService implements OnModuleInit {
   async onModuleInit() {
     const natCommand = 'sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE';
-    await runLinuxCommand(natCommand);
+    // await runLinuxCommand(natCommand);
   }
 }
