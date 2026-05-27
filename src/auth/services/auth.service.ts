@@ -11,10 +11,12 @@ import { authenticator } from '@otplib/preset-default';
 import { MfaActivateDto } from '../dto/mfa-activate.dto';
 import { MfaVerifyDto } from '../dto/mfa-verify.dto';
 import { LogService } from '@/audit/services/log.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private configService: ConfigService,
     private userService: UserService,
     private jwtService: JwtService,
     private readonly logService: LogService,
@@ -77,7 +79,7 @@ export class AuthService {
     const secret = authenticator.generateSecret();
     const otpauthUrl = authenticator.keyuri(
       user.username,
-      'SIS704',
+      this.configService.get<string>('APP_NAME') ?? 'APP',
       secret,
     );
     return {
