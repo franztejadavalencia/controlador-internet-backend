@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 export class PersonController {
   constructor(private personService: PersonService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Listar personas' })
   getAll() {
