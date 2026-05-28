@@ -8,6 +8,8 @@ import { LeaseWatcherService } from './network/services/lease-watcher.service';
 import { AccessControlModule } from './access_control/access-control.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
+import { BillingModule } from './billing/billing.module';
+import { NetworkModule } from './network/network.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AuthModule } from './auth/auth.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    BillingModule,
+    NetworkModule,
   ],
   controllers: [AppController],
   providers: [AppService, NetworkService, LeaseWatcherService],
