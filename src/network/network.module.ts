@@ -4,6 +4,6 @@ import { NetworkDetailsService } from './services/network-details.service';
 
 @Module({
   controllers: [NetworkDetailsController],
-  providers: [NetworkDetailsService]
+  providers: [NetworkDetailsService],
 })
 export class NetworkModule {}

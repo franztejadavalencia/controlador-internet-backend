@@ -1,6 +1,7 @@
 import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { User } from './user.entity';
+import { Client } from '@/billing/entities/client.entity';
 
 @Entity('people')
 @Index(['ci'], { unique: true, where: 'deleted_at IS NULL' })
@@ -23,4 +24,7 @@ export class Person extends BaseEntity {
 
   @OneToOne(() => User, (user) => user.person)
   user?: User;
+
+  @OneToOne(() => Client, (client) => client.person)
+  client?: Client;
 }
