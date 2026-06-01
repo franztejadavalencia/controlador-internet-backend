@@ -97,6 +97,19 @@ export class PersonService {
       return await this.personRepository.save(result);
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
+      if (getPgErrorCode(error) === '23505') {
+        const detail = String(
+          typeof error === 'object' && error !== null && 'detail' in error
+            ? (error as { detail?: unknown }).detail
+            : '',
+        );
+        if (detail.includes('ci')) {
+          throw new ConflictException(`El CI: "${changes.ci}" ya está en uso.`);
+        }
+        if (detail.includes('email')) {
+          throw new ConflictException(`El Email: "${changes.email}" ya está en uso.`);
+        }
+      }
       throw new BadRequestException(`Error al actualizar la persona. ${getErrorMessage(error)}`);
     } finally {
       await this.logService.create({

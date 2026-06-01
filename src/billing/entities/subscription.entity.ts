@@ -12,15 +12,13 @@ import { BaseEntity } from '@/common/entities/base.entity';
 import { Plan } from '@/billing/entities/plan.entity';
 import { Client } from '@/billing/entities/client.entity';
 import { Payment } from './payment.entity';
+import { SubscriptionStatus } from './subscription-status.entity';
 import { NetworkDetails } from '@/network/entities/network-details.entity';
 
 @Entity('subscriptions')
 export class Subscription extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id_subscription' })
   idSubscription: number;
-
-  @Column({ type: 'varchar', length: 50, default: 'INACTIVO' })
-  status: string;
 
   @Column({ name: 'expiration_date', type: 'timestamptz', nullable: true })
   expirationDate: Date | null;
@@ -38,6 +36,13 @@ export class Subscription extends BaseEntity {
 
   @RelationId((subscription: Subscription) => subscription.client)
   idClient: number;
+
+  @ManyToOne(() => SubscriptionStatus, (subscriptionStatus) => subscriptionStatus.subscriptions)
+  @JoinColumn({ name: 'id_subscription_status', referencedColumnName: 'idSubscriptionStatus' })
+  subscriptionStatus: SubscriptionStatus;
+
+  @RelationId((subscription: Subscription) => subscription.subscriptionStatus)
+  idSubscriptionStatus: number;
 
   @OneToMany(() => Payment, (payment) => payment.subscription)
   payments: Payment[];

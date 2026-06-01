@@ -24,7 +24,7 @@ export class CreatePersonDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   ci: string;
 
-  @ApiProperty({ example: 'juan.perez@email.com' })
+  @ApiProperty({ example: 'jperez@email.com' })
   @IsEmail()
   @IsNotEmpty()
   @MaxLength(255)

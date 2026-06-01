@@ -1,8 +1,9 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Subscription } from './subscription.entity';
 
 @Entity('plans')
+@Index(['name'], { unique: true, where: 'deleted_at IS NULL' })
 export class Plan extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id_plan' })
   idPlan: number;
@@ -20,7 +21,7 @@ export class Plan extends BaseEntity {
   price: number;
 
   @Column({ name: 'is_active', type: 'boolean', default: 'false' })
-  idActive: boolean;
+  isActive: boolean;
 
   @OneToMany(() => Subscription, (subscription) => subscription.plan)
   subscriptions: Subscription[];

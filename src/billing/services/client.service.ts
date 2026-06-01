@@ -12,6 +12,7 @@ import { CreateClientDto } from '../dto/create-client.dto';
 import { UpdateClientDto } from '../dto/update-client.dto';
 import { Client } from '../entities/client.entity';
 import { Person } from '@/auth/entities/person.entity';
+import { ClientType }from '../entities/client-type.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
 
@@ -22,6 +23,8 @@ export class ClientService {
     private readonly clientRepository: Repository<Client>,
     @InjectRepository(Person)
     private readonly personRepository: Repository<Person>,
+    @InjectRepository(ClientType)
+    private readonly clientTypeRepository: Repository<ClientType>,
     private readonly logService: LogService,
   ) {}
 
@@ -29,7 +32,7 @@ export class ClientService {
     try {
       return await this.clientRepository.find({
         where: { deletedAt: IsNull() },
-        relations: { person: true },
+        relations: { person: true, clientType: true },
         order: {
           person: {
             firstName: 'ASC',
@@ -46,7 +49,7 @@ export class ClientService {
     try {
       return await this.clientRepository.find({
         where: { deletedAt: Not(IsNull()) },
-        relations: { person: true },
+        relations: { person: true, clientType: true },
         order: {
           person: {
             firstName: 'ASC',
@@ -66,7 +69,7 @@ export class ClientService {
     try {
       return await this.clientRepository.findOneOrFail({
         where: { idClient: id, deletedAt: IsNull() },
-        relations: { person: true },
+        relations: { person: true, clientType: true },
       });
     } catch (error: unknown) {
       if (error instanceof EntityNotFoundError) {
@@ -84,8 +87,14 @@ export class ClientService {
       if (!person) {
         throw new NotFoundException(`No existe la persona con ID ${dto.idPerson}`);
       }
+      const clientType = await this.clientTypeRepository.findOne({
+        where: { idClientType: dto.idClientType, deletedAt: IsNull() },
+      });
+      if (!clientType) {
+        throw new NotFoundException(`No existe el tipo de cliente con ID ${dto.idPerson}`);
+      }
       const client = this.clientRepository.create({
-        clientType: dto.clientType,
+        clientType,
         person,
       });
       return await this.clientRepository.save(client);
@@ -119,7 +128,20 @@ export class ClientService {
   ): Promise<Client> {
     try {
       const result = await this.findOne(id);
-      this.clientRepository.merge(result, changes);
+      const person = await this.personRepository.findOne({
+        where: { idPerson: changes.idPerson, deletedAt: IsNull() },
+      });
+      if (!person) {
+        throw new NotFoundException(`No existe la persona con ID ${changes.idPerson}`);
+      }
+      const clientType = await this.clientTypeRepository.findOne({
+        where: { idClientType: changes.idClientType, deletedAt: IsNull() },
+      });
+      if (!clientType) {
+        throw new NotFoundException(`No existe el tipo de cliente con ID ${changes.idPerson}`);
+      }
+      result.person = person;
+      result.clientType = clientType;
       return await this.clientRepository.save(result);
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
@@ -127,8 +149,12 @@ export class ClientService {
         throw error;
       }
       if (getPgErrorCode(error) === '23505') {
-        const idPerson = changes.idPerson;
-        if (idPerson) {
+        const detail = String(
+          typeof error === 'object' && error !== null && 'detail' in error
+            ? (error as { detail?: unknown }).detail
+            : '',
+        );
+        if (detail.includes('id_person')) {
           throw new ConflictException(`La persona que seleccionó, ya es cliente.`);
         }
       }

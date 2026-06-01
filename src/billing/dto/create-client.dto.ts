@@ -8,10 +8,8 @@ export class CreateClientDto {
   @Min(1)
   idPerson: number;
 
-  @ApiProperty({ example: 'RESIDENCIAL' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  clientType: string;
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  @Min(1)
+  idClientType: number;
 }

@@ -13,11 +13,17 @@ import { Plan } from './entities/plan.entity';
 import { Subscription } from './entities/subscription.entity';
 import { Payment } from './entities/payment.entity';
 import { Person } from '@/auth/entities/person.entity';
+import { ClientType } from './entities/client-type.entity';
+import { ClientTypeService } from './services/client-type.service';
+import { ClientTypeController } from './controllers/client-type.controller';
+import { SubscriptionStatusService } from './services/subscription-status.service';
+import { SubscriptionStatusController } from './controllers/subscription-status.controller';
+import { SubscriptionStatus } from './entities/subscription-status.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client, Plan, Subscription, Payment, Person])],
+  imports: [TypeOrmModule.forFeature([Client, Plan, Subscription, Payment, Person, ClientType, SubscriptionStatus])],
   exports: [TypeOrmModule],
-  providers: [ClientService, PlanService, SubscriptionService, PaymentService],
-  controllers: [ClientController, PlanController, SubscriptionController, PaymentController],
+  providers: [ClientService, PlanService, SubscriptionService, PaymentService, ClientTypeService, SubscriptionStatusService],
+  controllers: [ClientController, PlanController, SubscriptionController, PaymentController, ClientTypeController, SubscriptionStatusController],
 })
 export class BillingModule {}

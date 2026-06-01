@@ -7,6 +7,7 @@ import { UpdateSubscriptionDto } from '../dto/update-subscription.dto';
 import { Subscription } from '../entities/subscription.entity';
 import { Plan } from '../entities/plan.entity';
 import { Client } from '../entities/client.entity';
+import { SubscriptionStatus } from '../entities/subscription-status.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
 
@@ -19,6 +20,8 @@ export class SubscriptionService {
     private readonly planRepository: Repository<Plan>,
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
+    @InjectRepository(SubscriptionStatus)
+    private readonly subscriptionStatusRepository: Repository<SubscriptionStatus>,
     private readonly logService: LogService,
   ) {}
 
@@ -29,6 +32,7 @@ export class SubscriptionService {
         relations: {
           plan: true,
           client: true,
+          subscriptionStatus: true,
         },
         order: { expirationDate: 'DESC' },
       });
@@ -46,6 +50,7 @@ export class SubscriptionService {
         relations: {
           plan: true,
           client: true,
+          subscriptionStatus: true,
         },
         order: { expirationDate: 'ASC' },
         withDeleted: true,
@@ -64,6 +69,7 @@ export class SubscriptionService {
         relations: {
           plan: true,
           client: true,
+          subscriptionStatus: true,
         },
       });
     } catch (error: unknown) {
@@ -91,12 +97,18 @@ export class SubscriptionService {
       if (!client) {
         throw new NotFoundException(`No existe el cliente con ID ${dto.idClient}`);
       }
+      const subscriptionStatus = await this.subscriptionStatusRepository.findOne({
+        where: { idSubscriptionStatus: dto.idSubscriptionStatus, deletedAt: IsNull() },
+      });
+      if (!subscriptionStatus) {
+        throw new NotFoundException(`No existe el estado de subscriptión con ID ${dto.idClient}`);
+      }
 
       const subscription = this.subscriptionRepository.create({
-        status: dto.status,
         expirationDate: dto.expirationDate ?? null,
         plan,
         client,
+        subscriptionStatus,
       });
       return await this.subscriptionRepository.save(subscription);
     } catch (error: unknown) {
@@ -119,7 +131,28 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     try {
       const result = await this.findOne(id);
+      const plan = await this.planRepository.findOne({
+        where: { idPlan: changes.idPlan, deletedAt: IsNull() },
+      });
+      if (!plan) {
+        throw new NotFoundException(`No existe el Plan con ID ${changes.idPlan}`);
+      }
+      const client = await this.clientRepository.findOne({
+        where: { idClient: changes.idClient, deletedAt: IsNull() },
+      });
+      if (!client) {
+        throw new NotFoundException(`No existe el cliente con ID ${changes.idClient}`);
+      }
+      const subscriptionStatus = await this.subscriptionStatusRepository.findOne({
+        where: { idSubscriptionStatus: changes.idSubscriptionStatus, deletedAt: IsNull() },
+      });
+      if (!subscriptionStatus) {
+        throw new NotFoundException(`No existe el estado de subscriptión con ID ${changes.idClient}`);
+      }
       this.subscriptionRepository.merge(result, changes);
+      result.client = client;
+      result.plan = plan;
+      result.subscriptionStatus = subscriptionStatus;
       return await this.subscriptionRepository.save(result);
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
