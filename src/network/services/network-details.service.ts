@@ -23,7 +23,14 @@ export class NetworkDetailsService {
     try {
       return await this.networkDetailsRepository.find({
         where: { deletedAt: IsNull() },
-        relations: { subscription: true },
+        relations: {
+          subscription: {
+            plan: true,
+            client: {
+              person: true,
+            }
+          },
+        },
         order: { ipAddress: 'ASC' },
       });
     } catch (error: unknown) {
@@ -100,6 +107,13 @@ export class NetworkDetailsService {
   ): Promise<NetworkDetails> {
     try {
       const result = await this.findOne(id);
+      const subscription = await this.subscriptionRepository.findOne({
+        where: { idSubscription: changes.idSubscription, deletedAt: IsNull() },
+      });
+      if (!subscription) {
+        throw new NotFoundException(`No existe la subscripción con ID ${changes.idSubscription}`);
+      }
+      result.subscription = subscription;
       this.networkDetailsRepository.merge(result, changes);
       return await this.networkDetailsRepository.save(result);
     } catch (error: unknown) {

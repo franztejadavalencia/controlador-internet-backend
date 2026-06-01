@@ -31,7 +31,9 @@ export class SubscriptionService {
         where: { deletedAt: IsNull() },
         relations: {
           plan: true,
-          client: true,
+          client: {
+            person: true,
+          },
           subscriptionStatus: true,
         },
         order: { expirationDate: 'DESC' },
