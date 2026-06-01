@@ -45,10 +45,7 @@ export class LogController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un log' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() payload: UpdateLogDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() payload: UpdateLogDto) {
     return this.logService.update(id, payload);
   }
 

@@ -1,4 +1,12 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, RelationId } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  RelationId,
+} from 'typeorm';
 import { BaseEntity } from '@/common/entities/base.entity';
 import { Person } from '@/auth/entities/person.entity';
 import { Subscription } from './subscription.entity';

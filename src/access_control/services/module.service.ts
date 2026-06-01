@@ -122,7 +122,10 @@ export class ModuleService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.moduleRepository.restore({ deletedAt: Not(IsNull()), idModule: id });
+      const result = await this.moduleRepository.restore({
+        deletedAt: Not(IsNull()),
+        idModule: id,
+      });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró un módulo eliminado con ID ${id}`);
       }

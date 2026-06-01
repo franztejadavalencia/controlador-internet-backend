@@ -165,7 +165,10 @@ export class UserRoleService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.userRoleRepository.restore({ deletedAt: Not(IsNull()), idUserRole: id });
+      const result = await this.userRoleRepository.restore({
+        deletedAt: Not(IsNull()),
+        idUserRole: id,
+      });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró una asignación eliminada con ID ${id}`);
       }

@@ -69,10 +69,7 @@ export class PermissionService {
     }
   }
 
-  async create(
-    dto: CreatePermissionDto,
-    loggerAction: LoggerActionInterface,
-  ): Promise<Permission> {
+  async create(dto: CreatePermissionDto, loggerAction: LoggerActionInterface): Promise<Permission> {
     try {
       const role = await this.roleRepository.findOne({
         where: { idRole: dto.idRole, deletedAt: IsNull() },
@@ -189,7 +186,10 @@ export class PermissionService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.permissionRepository.restore({ deletedAt: Not(IsNull()), idPermission: id });
+      const result = await this.permissionRepository.restore({
+        deletedAt: Not(IsNull()),
+        idPermission: id,
+      });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró un permiso eliminado con ID ${id}`);
       }

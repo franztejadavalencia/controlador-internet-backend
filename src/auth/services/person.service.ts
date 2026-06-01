@@ -86,7 +86,11 @@ export class PersonService {
     }
   }
 
-  async update(id: number, changes: UpdatePersonDto, loggerAction: LoggerActionInterface): Promise<Person> {
+  async update(
+    id: number,
+    changes: UpdatePersonDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<Person> {
     try {
       const result = await this.findOne(id);
       this.personRepository.merge(result, changes);
@@ -118,7 +122,10 @@ export class PersonService {
 
   async restore(id: number, loggerAction: LoggerActionInterface) {
     try {
-      const result = await this.personRepository.restore({ deletedAt: Not(IsNull()), idPerson: id });
+      const result = await this.personRepository.restore({
+        deletedAt: Not(IsNull()),
+        idPerson: id,
+      });
       if (result.affected === 0) {
         throw new NotFoundException(`No se encontró una persona eliminada con ID ${id}`);
       }

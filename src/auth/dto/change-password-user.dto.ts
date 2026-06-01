@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ChangePasswordUserDto {
   @ApiProperty({ example: '12345678' })

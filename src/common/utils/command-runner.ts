@@ -1,7 +1,7 @@
-import { exec } from "child_process";
-import { Logger } from "@nestjs/common";
-import { promisify } from "util";
-import { getErrorMessage } from "./error-message";
+import { exec } from 'child_process';
+import { Logger } from '@nestjs/common';
+import { promisify } from 'util';
+import { getErrorMessage } from './error-message';
 
 const execAsync = promisify(exec);
 const logger = new Logger('CommandRunner');
@@ -13,7 +13,7 @@ export const runLinuxCommand = async (command: string): Promise<string> => {
   }
   try {
     const { stdout } = await execAsync(command);
-    console.log('Ejecutando comando...')
+    console.log('Ejecutando comando...');
     return stdout;
   } catch (error: unknown) {
     const errMsg = getErrorMessage(error);

@@ -35,7 +35,7 @@ export class AuthController {
   async activeMfa(
     @LoggerAction({ action: 'ACTIVATE_MFA' })
     loggerAction: LoggerActionInterface,
-    @Body() dto: MfaActivateDto
+    @Body() dto: MfaActivateDto,
   ): Promise<LoginResponse> {
     return this.authService.activateMfa(dto, loggerAction);
   }
@@ -44,7 +44,8 @@ export class AuthController {
   async verifyMfa(
     @LoggerAction({ action: 'VERIFY_MFA' })
     loggerAction: LoggerActionInterface,
-    @Body() dto: MfaVerifyDto): Promise<LoginResponse> {
-      return this.authService.verifyMfa(dto, loggerAction);
+    @Body() dto: MfaVerifyDto,
+  ): Promise<LoginResponse> {
+    return this.authService.verifyMfa(dto, loggerAction);
   }
 }

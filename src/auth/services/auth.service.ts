@@ -76,7 +76,7 @@ export class AuthService {
   }
 
   private async generateMfaSetup(user: User): Promise<LoginResponse> {
-    const secret = authenticator.generateSecret();
+    const secret = await authenticator.generateSecret();
     const otpauthUrl = authenticator.keyuri(
       user.username,
       this.configService.get<string>('APP_NAME') ?? 'APP',
@@ -89,11 +89,14 @@ export class AuthService {
         secret,
         otpauthUrl,
       },
-      idUser: user.idUser
+      idUser: user.idUser,
     };
   }
 
-  async activateMfa(data: MfaActivateDto, loggerAction: LoggerActionInterface): Promise<LoginResponse> {
+  async activateMfa(
+    data: MfaActivateDto,
+    loggerAction: LoggerActionInterface,
+  ): Promise<LoginResponse> {
     const { idUser, token, secret } = data;
     const isValid = authenticator.verify({ token, secret });
 
@@ -101,9 +104,13 @@ export class AuthService {
       throw new UnauthorizedException('Código de verificación inválido.');
     }
 
-    await this.userService.update(idUser, { 
-      twoFactorSecret: secret,
-    }, loggerAction);
+    await this.userService.update(
+      idUser,
+      {
+        twoFactorSecret: secret,
+      },
+      loggerAction,
+    );
 
     const user = await this.userService.findOne(idUser);
     return this.generateLoginResponse(user);
@@ -114,12 +121,12 @@ export class AuthService {
     if (!user || !user.twoFactorSecret) {
       throw new UnauthorizedException('El usuario no tiene 2FA configurado.');
     }
-  
+
     const isValid = authenticator.verify({
       token: dto.token,
       secret: user.twoFactorSecret,
     });
-  
+
     if (!isValid) {
       throw new UnauthorizedException('Código de verificación incorrecto.');
     }
@@ -127,7 +134,7 @@ export class AuthService {
     await this.logService.create({
       ...loggerAction,
     });
-  
+
     return this.generateLoginResponse(user);
   }
 }
