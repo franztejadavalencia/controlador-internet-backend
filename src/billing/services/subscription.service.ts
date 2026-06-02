@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityNotFoundError, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, EntityNotFoundError, IsNull, Not, Repository } from 'typeorm';
 import { getErrorMessage } from '@/common/utils/error-message';
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from '../dto/update-subscription.dto';
@@ -22,6 +22,7 @@ export class SubscriptionService {
     private readonly clientRepository: Repository<Client>,
     @InjectRepository(SubscriptionStatus)
     private readonly subscriptionStatusRepository: Repository<SubscriptionStatus>,
+    private readonly dataSource: DataSource,
     private readonly logService: LogService,
   ) {}
 
@@ -105,8 +106,11 @@ export class SubscriptionService {
       if (!subscriptionStatus) {
         throw new NotFoundException(`No existe el estado de subscriptión con ID ${dto.idClient}`);
       }
-
+      const query = await this.dataSource.query("SELECT nextval('subscription_code_seq') as next");
+      const nextNumber = query[0].next;
+      const code = `SUB${nextNumber.toString().padStart(4, '0')}`;
       const subscription = this.subscriptionRepository.create({
+        code,
         expirationDate: dto.expirationDate ?? null,
         plan,
         client,

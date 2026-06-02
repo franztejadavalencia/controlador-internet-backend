@@ -18,6 +18,9 @@ export class Client extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id_client' })
   idClient: number;
 
+  @Column({ type: 'varchar', length: 100 })
+  code: string;
+
   @OneToOne(() => Person, (person) => person.client)
   @JoinColumn({ name: 'id_person', referencedColumnName: 'idPerson' })
   person: Person;

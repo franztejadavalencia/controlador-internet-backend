@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityNotFoundError, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, EntityNotFoundError, IsNull, Not, Repository } from 'typeorm';
 import { getErrorMessage, getPgErrorCode } from '@/common/utils/error-message';
 import { CreateClientDto } from '../dto/create-client.dto';
 import { UpdateClientDto } from '../dto/update-client.dto';
@@ -25,6 +25,7 @@ export class ClientService {
     private readonly personRepository: Repository<Person>,
     @InjectRepository(ClientType)
     private readonly clientTypeRepository: Repository<ClientType>,
+    private readonly dataSource: DataSource,
     private readonly logService: LogService,
   ) {}
 
@@ -93,7 +94,11 @@ export class ClientService {
       if (!clientType) {
         throw new NotFoundException(`No existe el tipo de cliente con ID ${dto.idPerson}`);
       }
+      const query = await this.dataSource.query("SELECT nextval('client_code_seq') as next");
+      const nextNumber = query[0].next;
+      const code = `CLI${nextNumber.toString().padStart(4, '0')}`;
       const client = this.clientRepository.create({
+        code,
         clientType,
         person,
       });

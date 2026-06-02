@@ -20,6 +20,9 @@ export class Subscription extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id_subscription' })
   idSubscription: number;
 
+  @Column({ type: 'varchar', length: 100 })
+  code: string;
+
   @Column({ name: 'expiration_date', type: 'timestamptz', nullable: true })
   expirationDate: Date | null;
 
