@@ -94,8 +94,7 @@ export class NetworkDetailsService {
         throw new NotFoundException(`No existe el tipo de dispositivo con ID ${dto.idDeviceType}`);
       }
       const payment = this.networkDetailsRepository.create({
-        macAddress: dto.macAddress,
-        ipAddress: dto.ipAddress,
+        ...dto,
         deviceType,
         subscription,
       });

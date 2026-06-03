@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NetworkDetails } from './entities/network-details.entity';
 import { Subscription } from '@/billing/entities/subscription.entity';
 import { DeviceType } from './entities/device-type.entity';
+import { DeviceTypeService } from './services/device-type.service';
+import { DeviceTypeController } from './controllers/device-type.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NetworkDetails, Subscription, DeviceType])],
   exports: [TypeOrmModule],
-  controllers: [NetworkDetailsController],
-  providers: [NetworkDetailsService],
+  controllers: [NetworkDetailsController, DeviceTypeController],
+  providers: [NetworkDetailsService, DeviceTypeService],
 })
 export class NetworkModule {}

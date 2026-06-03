@@ -69,9 +69,7 @@ export class PaymentService {
         throw new NotFoundException(`No existe la subscripción con ID ${dto.idSubscription}`);
       }
       const payment = this.paymentRepository.create({
-        amount: dto.amount,
-        paymentDate: dto.paymentDate,
-        montsPayed: dto.montsPayed,
+        ...dto,
         subscription,
       });
       return await this.paymentRepository.save(payment);

@@ -13,19 +13,18 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoggerAction } from '@/common/decorators/logger-action.decorator';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
-import { ClientService } from '../services/client.service';
+import { DeviceTypeService } from '../services/device-type.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { SubscriptionStatusService } from '../services/subscription-status.service';
 
-@ApiTags('SubscriptionStatus')
-@Controller('subscription-status')
-export class SubscriptionStatusController {
-  constructor(private readonly subscriptionStatusService: SubscriptionStatusService) {}
+@ApiTags('DeviceTypes')
+@Controller('device-types')
+export class DeviceTypeController {
+  constructor(private readonly deviceTypeService: DeviceTypeService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'Listar estados de subscripciones' })
+  @ApiOperation({ summary: 'Listar tipos de dispositivos' })
   getAll() {
-    return this.subscriptionStatusService.findAll();
+    return this.deviceTypeService.findAll();
   }
 }
