@@ -96,7 +96,7 @@ export class ClientService {
       }
       const query = await this.dataSource.query("SELECT nextval('client_code_seq') as next");
       const nextNumber = query[0].next;
-      const code = `CLI${nextNumber.toString().padStart(4, '0')}`;
+      const code = `CLI-${nextNumber.toString().padStart(4, '0')}`;
       const client = this.clientRepository.create({
         code,
         clientType,

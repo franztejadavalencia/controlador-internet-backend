@@ -6,6 +6,7 @@ import { CreateNetworkDetailsDto } from '../dto/create-network-details.dto';
 import { UpdateNetworkDetailsDto } from '../dto/update-network-details.dto';
 import { NetworkDetails } from '../entities/network-details.entity';
 import { Subscription } from '@/billing/entities/subscription.entity';
+import { DeviceType } from '../entities/device-type.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
 
@@ -16,6 +17,8 @@ export class NetworkDetailsService {
     private readonly networkDetailsRepository: Repository<NetworkDetails>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
+    @InjectRepository(DeviceType)
+    private readonly deviceTypeRepository: Repository<DeviceType>,
     private readonly logService: LogService,
   ) {}
 
@@ -28,8 +31,9 @@ export class NetworkDetailsService {
             plan: true,
             client: {
               person: true,
-            }
+            },
           },
+          deviceType: true,
         },
         order: { ipAddress: 'ASC' },
       });
@@ -44,7 +48,10 @@ export class NetworkDetailsService {
     try {
       return await this.networkDetailsRepository.find({
         where: { deletedAt: Not(IsNull()) },
-        relations: { subscription: true },
+        relations: {
+          subscription: true,
+          deviceType: true,
+        },
         order: { ipAddress: 'ASC' },
         withDeleted: true,
       });
@@ -80,10 +87,16 @@ export class NetworkDetailsService {
       if (!subscription) {
         throw new NotFoundException(`No existe la subscripción con ID ${dto.idSubscription}`);
       }
+      const deviceType = await this.deviceTypeRepository.findOne({
+        where: { idDeviceType: dto.idDeviceType, deletedAt: IsNull() },
+      });
+      if (!deviceType) {
+        throw new NotFoundException(`No existe el tipo de dispositivo con ID ${dto.idDeviceType}`);
+      }
       const payment = this.networkDetailsRepository.create({
         macAddress: dto.macAddress,
         ipAddress: dto.ipAddress,
-        deviceType: dto.deviceType,
+        deviceType,
         subscription,
       });
       return await this.networkDetailsRepository.save(payment);
@@ -113,7 +126,16 @@ export class NetworkDetailsService {
       if (!subscription) {
         throw new NotFoundException(`No existe la subscripción con ID ${changes.idSubscription}`);
       }
+      const deviceType = await this.deviceTypeRepository.findOne({
+        where: { idDeviceType: changes.idDeviceType, deletedAt: IsNull() },
+      });
+      if (!deviceType) {
+        throw new NotFoundException(
+          `No existe el tipo de dispositivo con ID ${changes.idDeviceType}`,
+        );
+      }
       result.subscription = subscription;
+      result.deviceType = deviceType;
       this.networkDetailsRepository.merge(result, changes);
       return await this.networkDetailsRepository.save(result);
     } catch (error: unknown) {

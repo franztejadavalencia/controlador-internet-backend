@@ -4,9 +4,10 @@ import { NetworkDetailsService } from './services/network-details.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NetworkDetails } from './entities/network-details.entity';
 import { Subscription } from '@/billing/entities/subscription.entity';
+import { DeviceType } from './entities/device-type.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([NetworkDetails, Subscription])],
+  imports: [TypeOrmModule.forFeature([NetworkDetails, Subscription, DeviceType])],
   exports: [TypeOrmModule],
   controllers: [NetworkDetailsController],
   providers: [NetworkDetailsService],

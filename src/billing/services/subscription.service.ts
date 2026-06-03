@@ -108,7 +108,7 @@ export class SubscriptionService {
       }
       const query = await this.dataSource.query("SELECT nextval('subscription_code_seq') as next");
       const nextNumber = query[0].next;
-      const code = `SUB${nextNumber.toString().padStart(4, '0')}`;
+      const code = `SUB-${nextNumber.toString().padStart(4, '0')}`;
       const subscription = this.subscriptionRepository.create({
         code,
         expirationDate: dto.expirationDate ?? null,
