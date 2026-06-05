@@ -3,13 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { NetworkService } from './network/services/network.service';
-import { LeaseWatcherService } from './network/services/lease-watcher.service';
 import { AccessControlModule } from './access_control/access-control.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { BillingModule } from './billing/billing.module';
 import { NetworkModule } from './network/network.module';
+import { NetworkGateway } from './network/utils/network.gateway';
 
 @Module({
   imports: [
@@ -33,6 +32,6 @@ import { NetworkModule } from './network/network.module';
     NetworkModule,
   ],
   controllers: [AppController],
-  providers: [AppService, NetworkService, LeaseWatcherService],
+  providers: [ AppService, NetworkGateway ],
 })
 export class AppModule {}

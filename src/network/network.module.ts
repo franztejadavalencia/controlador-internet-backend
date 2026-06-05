@@ -7,11 +7,12 @@ import { Subscription } from '@/billing/entities/subscription.entity';
 import { DeviceType } from './entities/device-type.entity';
 import { DeviceTypeService } from './services/device-type.service';
 import { DeviceTypeController } from './controllers/device-type.controller';
+import { NetworkService } from './services/network.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NetworkDetails, Subscription, DeviceType])],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, NetworkService],
   controllers: [NetworkDetailsController, DeviceTypeController],
-  providers: [NetworkDetailsService, DeviceTypeService],
+  providers: [NetworkDetailsService, DeviceTypeService, NetworkService],
 })
 export class NetworkModule {}
