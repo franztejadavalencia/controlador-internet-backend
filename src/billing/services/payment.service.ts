@@ -8,6 +8,7 @@ import { Payment } from '../entities/payment.entity';
 import { Subscription } from '../entities/subscription.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
+import { SubscriptionStatus } from '../entities/subscription-status.entity';
 
 @Injectable()
 export class PaymentService {
@@ -16,6 +17,8 @@ export class PaymentService {
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
+    @InjectRepository(SubscriptionStatus)
+    private readonly subscriptionStatusRepository: Repository<SubscriptionStatus>,
     private readonly logService: LogService,
   ) {}
 
@@ -68,6 +71,23 @@ export class PaymentService {
       if (!subscription) {
         throw new NotFoundException(`No existe la subscripción con ID ${dto.idSubscription}`);
       }
+      const subscriptionStatus = await this.subscriptionStatusRepository.findOne({
+        where: { idSubscriptionStatus: 1, deletedAt: IsNull() },
+      });
+      if (!subscriptionStatus) {
+        throw new NotFoundException(`No existe el estado de subscriptión con ID 1`);
+      }
+
+      const now = new Date();
+      const currentExpiration = subscription.expirationDate ? new Date(subscription.expirationDate) : null;
+
+      const newExpirationDate = this.calculateNewExpirationDate(currentExpiration, now, dto.montsPayed);
+      // const newStatusId = this.determineNewStatusId(currentExpiration, now);
+
+      subscription.subscriptionStatus = subscriptionStatus;
+      subscription.expirationDate = newExpirationDate;
+      await this.subscriptionRepository.save(subscription);
+
       const payment = this.paymentRepository.create({
         ...dto,
         subscription,
@@ -147,5 +167,31 @@ export class PaymentService {
         ...loggerAction,
       });
     }
+  }
+
+  private calculateNewExpirationDate(currentExpiration: Date | null, now: Date, monthsPayed: number): Date {
+    const baseDate = new Date(now);
+
+    if (!currentExpiration) {
+      baseDate.setMonth(baseDate.getMonth() + monthsPayed);
+      return baseDate;
+    }
+
+    if (currentExpiration.getTime() < now.getTime()) {
+      baseDate.setMonth(baseDate.getMonth() + monthsPayed);
+      return baseDate;
+    }
+
+    const extendedDate = new Date(currentExpiration);
+    extendedDate.setMonth(extendedDate.getMonth() + monthsPayed);
+    return extendedDate;
+  }
+
+  private determineNewStatusId(currentExpiration: Date | null, now: Date): number {
+    const STATUS_ACTIVO = 1;
+    if (!currentExpiration || currentExpiration.getTime() < now.getTime()) {
+      return STATUS_ACTIVO;
+    }
+    return STATUS_ACTIVO;
   }
 }

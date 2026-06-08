@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsDate,
   IsNumber,
@@ -24,6 +25,7 @@ export class CreateSubscriptionDto {
 
   @ApiPropertyOptional({ example: '2026-12-31T23:59:59.999Z' })
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   expirationDate?: Date | null;
 }

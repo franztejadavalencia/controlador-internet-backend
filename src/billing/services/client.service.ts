@@ -33,7 +33,13 @@ export class ClientService {
     try {
       return await this.clientRepository.find({
         where: { deletedAt: IsNull() },
-        relations: { person: true, clientType: true },
+        relations: { 
+          person: true,
+          clientType: true,
+          subscriptions: {
+            payments: true,
+          },
+        },
         order: {
           person: {
             firstName: 'ASC',
