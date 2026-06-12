@@ -62,6 +62,33 @@ export class NetworkDetailsService {
     }
   }
 
+  async findAllSubscriptionActive(): Promise<NetworkDetails[]> {
+    try {
+      return await this.networkDetailsRepository.find({
+        where: {
+          deletedAt: IsNull(),
+          subscription: {
+            subscriptionStatus: {
+              idSubscriptionStatus: 1,
+            }
+          },
+        },
+        relations: {
+          subscription: {
+            plan: true,
+          },
+          deviceType: true,
+        },
+        order: { ipAddress: 'ASC' },
+        withDeleted: true,
+      });
+    } catch (error: unknown) {
+      throw new BadRequestException(
+        `Error al obtener los dispositivos con subscripción activa. ${getErrorMessage(error)}`,
+      );
+    }
+  }
+
   async findOne(id: number): Promise<NetworkDetails> {
     try {
       return await this.networkDetailsRepository.findOneOrFail({

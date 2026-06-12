@@ -82,15 +82,14 @@ export class PaymentService {
       const currentExpiration = subscription.expirationDate ? new Date(subscription.expirationDate) : null;
 
       const newExpirationDate = this.calculateNewExpirationDate(currentExpiration, now, dto.montsPayed);
-      // const newStatusId = this.determineNewStatusId(currentExpiration, now);
 
       subscription.subscriptionStatus = subscriptionStatus;
       subscription.expirationDate = newExpirationDate;
-      await this.subscriptionRepository.save(subscription);
+      const updatedSubscription: Subscription = await this.subscriptionRepository.save(subscription);
 
       const payment = this.paymentRepository.create({
         ...dto,
-        subscription,
+        subscription: updatedSubscription,
       });
       return await this.paymentRepository.save(payment);
     } catch (error: unknown) {

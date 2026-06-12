@@ -38,6 +38,13 @@ export class NetworkDetailsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('subscription-active')
+  @ApiOperation({ summary: 'Listar detalles de red' })
+  getSubscriptionActive() {
+    return this.networkDetailsService.findAllSubscriptionActive();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un detalle de red' })
   getOne(@Param('id', ParseIntPipe) id: number) {
