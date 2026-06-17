@@ -139,8 +139,9 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     try {
       const result = await this.findOne(id);
-      const stateChanged =
-        (changes.idSubscriptionStatus && changes.idSubscriptionStatus !== result.idSubscriptionStatus);
+      const stateOrPlanChanged =
+        (changes.idSubscriptionStatus && changes.idSubscriptionStatus !== result.idSubscriptionStatus) ||
+        (changes.idPlan && changes.idPlan !== result.idPlan);
       const plan = await this.planRepository.findOne({
         where: { idPlan: changes.idPlan, deletedAt: IsNull() },
       });
@@ -165,7 +166,7 @@ export class SubscriptionService {
       result.subscriptionStatus = subscriptionStatus;
       const updated = await this.subscriptionRepository.save(result);
 
-      if (stateChanged) {
+      if (stateOrPlanChanged) {
         await this.networkDetailsService.syncSubscription(
           updated.idSubscription,
           updated.idSubscriptionStatus == 1 ? 'HABILITAR' : 'DESHABILITAR'

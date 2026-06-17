@@ -184,6 +184,7 @@ export class NetworkDetailsService {
   async delete(id: number, loggerAction: LoggerActionInterface): Promise<boolean> {
     try {
       await this.findOne(id);
+      await this.syncDeleteDevice(id);
       await this.networkDetailsRepository.softDelete({ idNetworkDetail: id });
       return true;
     } catch (error: unknown) {
@@ -274,6 +275,21 @@ export class NetworkDetailsService {
           action: 'HABILITAR',
         });
       }
+    }
+  }
+
+  async syncDeleteDevice(idNetworkDetail: number) {
+    const device = await this.networkDetailsRepository.findOne({
+      where: { idNetworkDetail },
+    });
+    if (device && device.ipAddress && device.macAddress) {
+      await this.networkEngineService.syncDevice({
+        ipAddress: device.ipAddress,
+        macAddress: device.macAddress,
+        downloadSpeed: 0,
+        uploadSpeed: 0,
+        action: 'DESHABILITAR',
+      });
     }
   }
 }
