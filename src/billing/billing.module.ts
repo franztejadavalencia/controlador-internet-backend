@@ -19,9 +19,10 @@ import { ClientTypeController } from './controllers/client-type.controller';
 import { SubscriptionStatusService } from './services/subscription-status.service';
 import { SubscriptionStatusController } from './controllers/subscription-status.controller';
 import { SubscriptionStatus } from './entities/subscription-status.entity';
+import { NetworkModule } from '@/network/network.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client, Plan, Subscription, Payment, Person, ClientType, SubscriptionStatus])],
+  imports: [TypeOrmModule.forFeature([Client, Plan, Subscription, Payment, Person, ClientType, SubscriptionStatus]), NetworkModule],
   exports: [TypeOrmModule],
   providers: [ClientService, PlanService, SubscriptionService, PaymentService, ClientTypeService, SubscriptionStatusService],
   controllers: [ClientController, PlanController, SubscriptionController, PaymentController, ClientTypeController, SubscriptionStatusController],

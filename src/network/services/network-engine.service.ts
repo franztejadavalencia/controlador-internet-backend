@@ -5,7 +5,7 @@ import { EngineDevice } from '../interfaces/engine-device.interface';
 @Injectable()
 export class NetworkEngineService {
   private readonly logger = new Logger(NetworkEngineService.name);
-  private readonly scriptPath = '/home/ftejada/sis704-backend/network-sync.sh';
+  private readonly scriptPath = '/home/user/controlador-internet-backend/network-sync.sh';
 
   async syncDevice(params: EngineDevice) {
     const { ipAddress, macAddress, downloadSpeed, uploadSpeed, action } = params;

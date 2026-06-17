@@ -13,7 +13,6 @@ export const runLinuxCommand = async (command: string): Promise<string> => {
   }
   try {
     const { stdout } = await execAsync(command);
-    logger.log('Ejecutando comando...');
     return stdout;
   } catch (error: unknown) {
     const errMsg = getErrorMessage(error);

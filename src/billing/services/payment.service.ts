@@ -9,6 +9,7 @@ import { Subscription } from '../entities/subscription.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
 import { SubscriptionStatus } from '../entities/subscription-status.entity';
+import { NetworkDetailsService } from '@/network/services/network-details.service';
 
 @Injectable()
 export class PaymentService {
@@ -19,6 +20,7 @@ export class PaymentService {
     private readonly subscriptionRepository: Repository<Subscription>,
     @InjectRepository(SubscriptionStatus)
     private readonly subscriptionStatusRepository: Repository<SubscriptionStatus>,
+    private readonly networkDetailsService: NetworkDetailsService,
     private readonly logService: LogService,
   ) {}
 
@@ -80,7 +82,6 @@ export class PaymentService {
 
       const now = new Date();
       const currentExpiration = subscription.expirationDate ? new Date(subscription.expirationDate) : null;
-
       const newExpirationDate = this.calculateNewExpirationDate(currentExpiration, now, dto.montsPayed);
 
       subscription.subscriptionStatus = subscriptionStatus;
@@ -91,7 +92,10 @@ export class PaymentService {
         ...dto,
         subscription: updatedSubscription,
       });
-      return await this.paymentRepository.save(payment);
+
+      const result = await this.paymentRepository.save(payment);
+      await this.networkDetailsService.syncSubscription(updatedSubscription.idSubscription, 'HABILITAR');
+      return result;
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {

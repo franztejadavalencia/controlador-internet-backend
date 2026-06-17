@@ -9,6 +9,7 @@ import { Subscription } from '@/billing/entities/subscription.entity';
 import { DeviceType } from '../entities/device-type.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
+import { NetworkEngineService } from './network-engine.service';
 
 @Injectable()
 export class NetworkDetailsService {
@@ -19,6 +20,7 @@ export class NetworkDetailsService {
     private readonly subscriptionRepository: Repository<Subscription>,
     @InjectRepository(DeviceType)
     private readonly deviceTypeRepository: Repository<DeviceType>,
+    private readonly networkEngineService: NetworkEngineService,
     private readonly logService: LogService,
   ) {}
 
@@ -219,6 +221,59 @@ export class NetworkDetailsService {
       await this.logService.create({
         ...loggerAction,
       });
+    }
+  }
+
+  async syncSubscription(idSubscription: number, action: 'HABILITAR' | 'DESHABILITAR') {
+    const devices = await this.networkDetailsRepository.find({
+      where: { subscription: { idSubscription } },
+      relations: {
+        subscription: {
+          plan: true,
+        }
+      },
+    });
+    for (const device of devices) {
+      const plan = device.subscription.plan;
+      if (device.ipAddress && device.macAddress && plan) {
+        await this.networkEngineService.syncDevice({
+          ipAddress: device.ipAddress,
+          macAddress: device.macAddress,
+          downloadSpeed: action === 'HABILITAR' ? plan.downloadSpeed : 0,
+          uploadSpeed: action === 'HABILITAR' ? plan.uploadSpeed : 0,
+          action,
+        });
+      }
+    }
+  }
+
+  async syncUpdatedSpeedPlan(idPlan: number) {
+    const devices = await this.networkDetailsRepository.find({
+      where: {
+        subscription: {
+          plan: { idPlan },
+          subscriptionStatus: { idSubscriptionStatus: 1 },
+        },
+      },
+      relations: { 
+        subscription: {
+          plan: true,
+          subscriptionStatus: true,
+        }
+      },
+    });
+
+    for (const device of devices) {
+      const plan = device.subscription.plan;
+      if (device.ipAddress && device.macAddress) {
+        await this.networkEngineService.syncDevice({
+          ipAddress: device.ipAddress,
+          macAddress: device.macAddress,
+          downloadSpeed: plan.downloadSpeed,
+          uploadSpeed: plan.uploadSpeed,
+          action: 'HABILITAR',
+        });
+      }
     }
   }
 }

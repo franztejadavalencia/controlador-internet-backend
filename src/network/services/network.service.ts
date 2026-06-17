@@ -11,6 +11,8 @@ export class NetworkService implements OnModuleInit {
   private readonly logger = new Logger(NetworkService.name);
   private readonly leasePath = '/var/lib/dhcp/dhcpd.leases';
   private watcher: chokidar.FSWatcher | null = null;
+  private readonly WAN_IF = 'wlp1s0';
+  private readonly LAN_IF = 'enp0s31f6';
 
   constructor(
     private readonly networkDetailService: NetworkDetailsService,
@@ -23,34 +25,31 @@ export class NetworkService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      this.logger.log('Inicializando reglas de enrutamiento y control de tráfico...');
-      // const cleanIptables = 'sudo iptables -F FORWARD';
-      // await runLinuxCommand(cleanIptables);
-      const natCommand = 'sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE';
-      await runLinuxCommand(natCommand);
-      this.logger.log('Regla NAT de iptables aplicada correctamente en enp0s3');
+      this.logger.log('🚀 Inicializando reglas de enrutamiento y control de tráfico...');
+      await runLinuxCommand(`sudo iptables -F FORWARD`);
+      await runLinuxCommand(`sudo iptables -t nat -D POSTROUTING -o ${this.WAN_IF} -j MASQUERADE 2>/dev/null || true`);
+      await runLinuxCommand(`sudo iptables -t nat -A POSTROUTING -o ${this.WAN_IF} -j MASQUERADE`);
+      this.logger.log(`Regla NAT de iptables aplicada correctamente en ${this.WAN_IF}`);
 
-      await runLinuxCommand('sudo iptables -A INPUT -i lo -j ACCEPT');
-      await runLinuxCommand('sudo iptables -A OUTPUT -o lo -j ACCEPT');
-      await runLinuxCommand('sudo iptables -D INPUT -i enp0s8 -p tcp --dport 22 -j ACCEPT 2>/dev/null || true');
-      await runLinuxCommand('sudo iptables -A INPUT -i enp0s8 -p tcp --dport 22 -j ACCEPT');
+      await runLinuxCommand(`sudo iptables -A INPUT -i lo -j ACCEPT`);
+      await runLinuxCommand(`sudo iptables -A OUTPUT -o lo -j ACCEPT`);
 
-      const dropCommand = 'sudo iptables -P FORWARD DROP';
-      await runLinuxCommand(dropCommand);
+      await runLinuxCommand(`sudo iptables -D INPUT -i ${this.LAN_IF} -p tcp --dport 22 -j ACCEPT 2>/dev/null || true`);
+      await runLinuxCommand(`sudo iptables -A INPUT -i ${this.LAN_IF} -p tcp --dport 22 -j ACCEPT`);
+      this.logger.log(`Puerto 22 (SSH/Cursor) habilitado en LAN (${this.LAN_IF}).`);
 
-      const establishedCommand = 'sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT';
-      await runLinuxCommand(establishedCommand);
-      this.logger.log('Red Bloqueada. Política FORWARD establecida en DROP por defecto.');
-      
-      const cleanTcCommand = 'sudo tc qdisc del dev enp0s8 root 2>/dev/null || true';
-      await runLinuxCommand(cleanTcCommand);
-      const tcRootCommand = 'sudo tc qdisc add dev enp0s8 root handle 1: htb default 10';
-      await runLinuxCommand(tcRootCommand);
-      this.logger.log('Disciplina raíz TC HTB inicializada en enp0s8 (LAN).');
+      await runLinuxCommand(`sudo iptables -P FORWARD DROP`);
+      this.logger.log('Red Bloqueada. Política FORWARD establecida en DROP');
+      await runLinuxCommand(`sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT`);
+      this.logger.log(`Regla FORWARD para tráfico activada en ${this.LAN_IF}.`);
 
-      this.logger.log('Consultando dispositivos con subscripción activa');
+      await runLinuxCommand(`sudo tc qdisc del dev ${this.LAN_IF} root 2>/dev/null || true`);
+      await runLinuxCommand(`sudo tc qdisc add dev ${this.LAN_IF} root handle 1: htb default 10`);
+      this.logger.log(`Disciplina raíz TC HTB inicializada en ${this.LAN_IF} (LAN).`);
+
+      this.logger.log('Consultando dispositivos con subscripción activa.');
       const activeDevices = await this.networkDetailService.findAllSubscriptionActive();
-      this.logger.log(`Se encontraron ${activeDevices.length} dispositivos activos. Habilitando...`);
+      this.logger.log(`Se encontraron ${activeDevices.length} dispositivos activos. Habilitando.`);
 
       for (const device of activeDevices) {
         const { ipAddress, macAddress, subscription } = device;
@@ -66,9 +65,9 @@ export class NetworkService implements OnModuleInit {
           });
         }
       }
-      this.logger.log('Reglas de enrutamiento y control de tráfico completado');
+      this.logger.log('✅ Reglas de enrutamiento y control de tráfico completados.');
     } catch (error) {
-      this.logger.error('Error crítico al inicializar la infraestructura de red');
+      this.logger.error('❌ Error crítico al inicializar la infraestructura de red.');
     }
   }
 

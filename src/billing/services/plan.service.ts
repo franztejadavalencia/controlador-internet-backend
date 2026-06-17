@@ -13,12 +13,14 @@ import { UpdatePlanDto } from '../dto/update-plan.dto';
 import { Plan } from '../entities/plan.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
+import { NetworkDetailsService } from '@/network/services/network-details.service';
 
 @Injectable()
 export class PlanService {
   constructor(
     @InjectRepository(Plan)
     private readonly planRepository: Repository<Plan>,
+    private readonly networkDetailsService: NetworkDetailsService,
     private readonly logService: LogService,
   ) {}
 
@@ -89,8 +91,17 @@ export class PlanService {
   ): Promise<Plan> {
     try {
       const result = await this.findOne(id);
+      const speedChanged =
+        (changes.downloadSpeed && changes.downloadSpeed !== result.downloadSpeed) ||
+        (changes.uploadSpeed && changes.uploadSpeed !== result.uploadSpeed);
+
       this.planRepository.merge(result, changes);
-      return await this.planRepository.save(result);
+      const updated = await this.planRepository.save(result);
+
+      if (speedChanged) {
+        await this.networkDetailsService.syncUpdatedSpeedPlan(updated.idPlan);
+      }
+      return updated;
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
       if (getPgErrorCode(error) === '23505') {

@@ -12,7 +12,7 @@ import { NetworkEngineService } from './services/network-engine.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NetworkDetails, Subscription, DeviceType])],
-  exports: [TypeOrmModule, NetworkService],
+  exports: [TypeOrmModule, NetworkService, NetworkDetailsService],
   controllers: [NetworkDetailsController, DeviceTypeController],
   providers: [NetworkDetailsService, DeviceTypeService, NetworkService, NetworkEngineService],
 })

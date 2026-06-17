@@ -10,6 +10,7 @@ import { Client } from '../entities/client.entity';
 import { SubscriptionStatus } from '../entities/subscription-status.entity';
 import { LoggerActionInterface } from '@/common/interfaces/logger-action.interface';
 import { LogService } from '@/audit/services/log.service';
+import { NetworkDetailsService } from '@/network/services/network-details.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -22,6 +23,7 @@ export class SubscriptionService {
     private readonly clientRepository: Repository<Client>,
     @InjectRepository(SubscriptionStatus)
     private readonly subscriptionStatusRepository: Repository<SubscriptionStatus>,
+    private readonly networkDetailsService: NetworkDetailsService,
     private readonly dataSource: DataSource,
     private readonly logService: LogService,
   ) {}
@@ -137,6 +139,8 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     try {
       const result = await this.findOne(id);
+      const stateChanged =
+        (changes.idSubscriptionStatus && changes.idSubscriptionStatus !== result.idSubscriptionStatus);
       const plan = await this.planRepository.findOne({
         where: { idPlan: changes.idPlan, deletedAt: IsNull() },
       });
@@ -159,7 +163,16 @@ export class SubscriptionService {
       result.client = client;
       result.plan = plan;
       result.subscriptionStatus = subscriptionStatus;
-      return await this.subscriptionRepository.save(result);
+      const updated = await this.subscriptionRepository.save(result);
+
+      if (stateChanged) {
+        await this.networkDetailsService.syncSubscription(
+          updated.idSubscription,
+          updated.idSubscriptionStatus == 1 ? 'HABILITAR' : 'DESHABILITAR'
+        );
+      }
+
+      return updated;
     } catch (error: unknown) {
       loggerAction.action = `${loggerAction.action}_ERROR`;
       if (error instanceof NotFoundException) {
